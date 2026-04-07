@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getRegisteredUser, loginUser } from "../services/authService";
+import { loginUser } from "../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,6 +25,7 @@ export default function Login() {
     "Analyste décisionnel",
   ];
 
+
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -32,6 +33,7 @@ export default function Login() {
     }));
   };
 
+ 
   const validate = () => {
     const newErrors = {
       email: "",
@@ -62,33 +64,29 @@ export default function Login() {
     return Object.values(newErrors).every((value) => value === "");
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
     if (!validate()) return;
 
-    const savedUser = getRegisteredUser();
+    try {
+      const response = await loginUser(formData);
 
-    if (!savedUser) {
-      setMessage("Aucun compte enregistré. Veuillez créer un compte.");
-      return;
+      if (response.token) {
+      
+        navigate("/dashboard");
+      } else {
+        // ❌ erreur backend
+        setMessage(response.message || "Erreur de connexion");
+      }
+    } catch (error) {
+      setMessage("Erreur serveur. Réessayez plus tard.");
     }
-
-    const isValidUser =
-      formData.email.trim().toLowerCase() === savedUser.email &&
-      formData.password === savedUser.password &&
-      formData.role === savedUser.role;
-
-    if (!isValidUser) {
-      setMessage("Email, mot de passe ou rôle incorrect.");
-      return;
-    }
-
-    loginUser(savedUser);
-    navigate("/dashboard");
   };
 
+  
   const handleCancel = () => {
     setFormData({
       email: "",

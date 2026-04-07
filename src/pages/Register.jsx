@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { saveRegisteredUser, getRegisteredUser } from "../services/authService";
+import { registerUser } from "../services/authService";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ export default function Register() {
     "Analyste décisionnel",
   ];
 
+  // 🟢 handle input
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -36,6 +37,7 @@ export default function Register() {
     }));
   };
 
+  // 🟢 validation
   const validate = () => {
     const newErrors = {
       name: "",
@@ -73,38 +75,38 @@ export default function Register() {
     }
 
     setErrors(newErrors);
-
     return Object.values(newErrors).every((value) => value === "");
   };
 
-  const handleSubmit = (e) => {
+  // 🟢 submit (backend)
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
     if (!validate()) return;
 
-    const existingUser = getRegisteredUser();
+    try {
+      const response = await registerUser({
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        role: formData.role,
+        password: formData.password,
+      });
 
-    if (
-      existingUser &&
-      existingUser.email.toLowerCase() === formData.email.trim().toLowerCase()
-    ) {
-      setMessage("Un compte avec cet email existe déjà.");
-      return;
+      if (response._id || response.email) {
+        // ✅ succès
+        setMessage("Compte créé avec succès.");
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
+      } else {
+        // ❌ erreur backend
+        setMessage(response.message || "Erreur lors de l'inscription");
+      }
+    } catch (error) {
+      setMessage("Erreur serveur. Réessayez plus tard.");
     }
-
-    saveRegisteredUser({
-      name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
-      role: formData.role,
-      password: formData.password,
-    });
-
-    setMessage("Compte créé avec succès.");
-
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
   };
 
   return (
