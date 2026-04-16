@@ -81,12 +81,12 @@ export const register = async (req, res) => {
 // LOGIN
 export const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password || !role) {
-      return res
-        .status(400)
-        .json({ message: "Tous les champs sont obligatoires." });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email et mot de passe sont obligatoires.",
+      });
     }
 
     const user = await User.findOne({
@@ -103,11 +103,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Mot de passe incorrect." });
     }
 
-    if (user.role !== role) {
-      return res.status(400).json({ message: "Rôle incorrect." });
+    if (user.status === "rejected") {
+      return res.status(403).json({
+        message: "Votre compte a été refusé par le manager.",
+      });
     }
 
-    if (!user.isApproved) {
+    if (user.status === "pending" || !user.isApproved) {
       return res.status(403).json({
         message: "Votre compte est en attente de validation par le manager.",
       });
@@ -138,7 +140,6 @@ export const login = async (req, res) => {
     });
   }
 };
-
 // FORGOT PASSWORD
 export const forgotPassword = async (req, res) => {
   try {

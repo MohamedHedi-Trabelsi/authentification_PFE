@@ -10,22 +10,14 @@ export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "",
   });
 
   const [errors, setErrors] = useState({
     email: "",
     password: "",
-    role: "",
   });
 
   const [loading, setLoading] = useState(false);
-
-  const roles = [
-    "Manager",
-    "Responsable de production",
-    "Analyste décisionnel",
-  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +37,6 @@ export default function Login() {
     const newErrors = {
       email: "",
       password: "",
-      role: "",
     };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,10 +52,6 @@ export default function Login() {
     } else if (formData.password.length < 8) {
       newErrors.password =
         "Le mot de passe doit contenir au moins 8 caractères.";
-    }
-
-    if (formData.role === "") {
-      newErrors.role = "Veuillez choisir un rôle.";
     }
 
     setErrors(newErrors);
@@ -89,7 +76,6 @@ export default function Login() {
       const response = await loginUser({
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        role: formData.role,
       });
 
       if (response?.token) {
@@ -111,13 +97,11 @@ export default function Login() {
     setFormData({
       email: "",
       password: "",
-      role: "",
     });
 
     setErrors({
       email: "",
       password: "",
-      role: "",
     });
   };
 
@@ -172,24 +156,6 @@ export default function Login() {
             {errors.password && (
               <p className="field-error">{errors.password}</p>
             )}
-          </div>
-
-          <div className="input-group">
-            <label htmlFor="role">Type d'utilisateur</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-            >
-              <option value="">Choisir un rôle</option>
-              {roles.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-            {errors.role && <p className="field-error">{errors.role}</p>}
           </div>
 
           <div className="login-links-row">

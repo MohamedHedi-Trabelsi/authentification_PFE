@@ -25,8 +25,8 @@ export async function loginUser(userData) {
   const data = await response.json();
 
   if (response.ok && data.token) {
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("currentUser", JSON.stringify(data.user));
+    sessionStorage.setItem("token", data.token);
+    sessionStorage.setItem("currentUser", JSON.stringify(data.user));
   }
 
   return data;
@@ -45,7 +45,7 @@ export async function forgotPassword(email) {
 }
 
 export async function getProfile() {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/profile`, {
     headers: {
@@ -57,7 +57,7 @@ export async function getProfile() {
 }
 
 export async function updateProfile(profileData) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/profile`, {
     method: "PUT",
@@ -71,59 +71,8 @@ export async function updateProfile(profileData) {
   return await response.json();
 }
 
-export async function getPendingUsers() {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${USER_URL}/pending`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return await response.json();
-}
-
-export async function approveUser(id) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${USER_URL}/approve/${id}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return await response.json();
-}
-
-export async function rejectUser(id) {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${USER_URL}/reject/${id}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return await response.json();
-}
-
-export function getCurrentUser() {
-  const user = localStorage.getItem("currentUser");
-  return user ? JSON.parse(user) : null;
-}
-
-export function setCurrentUser(user) {
-  localStorage.setItem("currentUser", JSON.stringify(user));
-}
-
-export function logoutUser() {
-  localStorage.removeItem("currentUser");
-  localStorage.removeItem("token");
-}
 export async function getAllUsers() {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/`, {
     headers: {
@@ -135,7 +84,7 @@ export async function getAllUsers() {
 }
 
 export async function createUserByManager(userData) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/`, {
     method: "POST",
@@ -150,7 +99,7 @@ export async function createUserByManager(userData) {
 }
 
 export async function updateUserByManager(id, userData) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/${id}`, {
     method: "PUT",
@@ -165,7 +114,7 @@ export async function updateUserByManager(id, userData) {
 }
 
 export async function deleteUserByManager(id) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   const response = await fetch(`${USER_URL}/${id}`, {
     method: "DELETE",
@@ -175,4 +124,44 @@ export async function deleteUserByManager(id) {
   });
 
   return await response.json();
+}
+
+export async function approveUser(id) {
+  const token = sessionStorage.getItem("token");
+
+  const response = await fetch(`${USER_URL}/approve/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return await response.json();
+}
+
+export async function rejectUser(id) {
+  const token = sessionStorage.getItem("token");
+
+  const response = await fetch(`${USER_URL}/reject/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return await response.json();
+}
+
+export function getCurrentUser() {
+  const user = sessionStorage.getItem("currentUser");
+  return user ? JSON.parse(user) : null;
+}
+
+export function setCurrentUser(user) {
+  sessionStorage.setItem("currentUser", JSON.stringify(user));
+}
+
+export function logoutUser() {
+  sessionStorage.removeItem("currentUser");
+  sessionStorage.removeItem("token");
 }

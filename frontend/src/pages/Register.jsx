@@ -165,8 +165,8 @@ export default function Register() {
           <p className="section-kicker">WIC MIC</p>
           <h1>Créer un compte</h1>
           <p className="login-brand-text">
-            Enregistrez un nouvel utilisateur dans l’espace de gestion sécurisé
-            de WIC MIC. Les comptes créés seront validés par le manager avant
+            Enregistrez un nouvel utilisateur dans l’espace sécurisé WIC MIC.
+            Après inscription, le compte devra être validé par le manager avant
             activation.
           </p>
 

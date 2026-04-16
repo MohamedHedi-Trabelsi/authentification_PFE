@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getCurrentUser,
@@ -14,11 +14,14 @@ import ConfirmModal from "../components/ConfirmModal";
 
 export default function UserManagement() {
   const navigate = useNavigate();
-  const currentUser = getCurrentUser();
   const { showToast } = useToast();
+
+  const currentUser = useMemo(() => getCurrentUser(), []);
+  const isManager = currentUser?.role === "Manager";
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -38,31 +41,41 @@ export default function UserManagement() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUserName, setSelectedUserName] = useState("");
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async (showErrorToast = true) => {
     try {
       setLoading(true);
       const data = await getAllUsers();
 
       if (Array.isArray(data)) {
         setUsers(data);
-      } else {
+      } else if (showErrorToast) {
         showToast(data?.message || "Erreur lors du chargement.", "error");
       }
     } catch (error) {
-      showToast("Erreur serveur lors du chargement.", "error");
+      if (showErrorToast) {
+        showToast("Erreur serveur lors du chargement.", "error");
+      }
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
-    if (!currentUser || currentUser.role !== "Manager") {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
+
+    if (!isManager) {
       navigate("/dashboard");
       return;
     }
 
-    loadUsers();
-  }, [currentUser, navigate]);
+    if (!hasLoadedOnce) {
+      loadUsers(false);
+    }
+  }, [currentUser, isManager, navigate, hasLoadedOnce, loadUsers]);
 
   const stats = useMemo(() => {
     const total = users.length;
@@ -102,7 +115,6 @@ export default function UserManagement() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -162,16 +174,19 @@ export default function UserManagement() {
         data = await createUserByManager(formData);
       }
 
-      showToast(
-        data?.message ||
-          (editingId
+      if (data?.message) {
+        showToast(data.message, "success");
+      } else {
+        showToast(
+          editingId
             ? "Utilisateur modifié avec succès."
-            : "Utilisateur ajouté avec succès."),
-        "success"
-      );
+            : "Utilisateur ajouté avec succès.",
+          "success"
+        );
+      }
 
       resetForm();
-      loadUsers();
+      await loadUsers(false);
     } catch (error) {
       showToast("Erreur serveur.", "error");
     }
@@ -187,7 +202,6 @@ export default function UserManagement() {
       status: user.status || "pending",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    showToast("Mode modification activé.", "info");
   };
 
   const openDeleteModal = (user) => {
@@ -205,22 +219,34 @@ export default function UserManagement() {
   const confirmDelete = async () => {
     if (!selectedUserId) return;
 
-    const data = await deleteUserByManager(selectedUserId);
-    showToast(data?.message || "Utilisateur supprimé.", "success");
-    closeDeleteModal();
-    loadUsers();
+    try {
+      const data = await deleteUserByManager(selectedUserId);
+      showToast(data?.message || "Utilisateur supprimé.", "success");
+      closeDeleteModal();
+      await loadUsers(false);
+    } catch (error) {
+      showToast("Erreur lors de la suppression.", "error");
+    }
   };
 
   const handleApprove = async (id) => {
-    const data = await approveUser(id);
-    showToast(data?.message || "Utilisateur approuvé.", "success");
-    loadUsers();
+    try {
+      const data = await approveUser(id);
+      showToast(data?.message || "Utilisateur approuvé.", "success");
+      await loadUsers(false);
+    } catch (error) {
+      showToast("Erreur lors de l'approbation.", "error");
+    }
   };
 
   const handleReject = async (id) => {
-    const data = await rejectUser(id);
-    showToast(data?.message || "Utilisateur refusé.", "info");
-    loadUsers();
+    try {
+      const data = await rejectUser(id);
+      showToast(data?.message || "Utilisateur refusé.", "info");
+      await loadUsers(false);
+    } catch (error) {
+      showToast("Erreur lors du refus.", "error");
+    }
   };
 
   return (

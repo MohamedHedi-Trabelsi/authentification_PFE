@@ -8,10 +8,7 @@ export default function ToastContainer() {
   return (
     <div className="toast-container">
       {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`toast-item toast-${toast.type}`}
-        >
+        <div key={toast.id} className={`toast-item toast-${toast.type}`}>
           <div className="toast-content">
             <span className="toast-icon">
               {toast.type === "success" && "✅"}
@@ -23,8 +20,8 @@ export default function ToastContainer() {
 
           <button
             className="toast-close"
-            onClick={() => removeToast(toast.id)}
             type="button"
+            onClick={() => removeToast(toast.id)}
           >
             ×
           </button>
